@@ -1,10 +1,41 @@
-header h1{
+header{
+    width: 100%;
     background-color: #262626;
+}
+
+header h1{
+    margin: 5px;
+    margin-left: 100px;
+    color: #21f064;
+    padding: 8px;
+    font-family: 'Brush Script MT', cursive;
+    font-size: 50px;
+    width: 75%;
+}
+
+header div{
+    position: relative;
+    display: inline-block;
     margin: 0;
-    color: #ffffff;
+    width: 49.5%;
+    color: #21f064;
+}
+
+header p{
+    text-align: right;
+    padding: 5px;
+}
+
+.logo{
+    float: left;
+    width: 70px;
+    margin: 10px;
+    border-radius: 50%;
+    background-color: #3a3a3a;
 }
 
 body{
     margin: 0;
     top: 0;
+    height: 200vh;
 }
