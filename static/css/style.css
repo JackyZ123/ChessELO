@@ -4,26 +4,26 @@ header{
 }
 
 header h1{
+    display: inline-block;
     margin: 5px;
-    margin-left: 100px;
-    color: #21f064;
+    color: #ffcf75;
     padding: 8px;
     font-family: 'Brush Script MT', cursive;
     font-size: 50px;
-    width: 75%;
 }
 
-header div{
+header{
     position: relative;
     display: inline-block;
     margin: 0;
-    width: 49.5%;
-    color: #21f064;
+    color: #dddddd;
+    vertical-align: middle;
 }
 
 header p{
+    float: right;
     text-align: right;
-    padding: 5px;
+    margin: 8px;
 }
 
 .logo{
@@ -32,6 +32,11 @@ header p{
     margin: 10px;
     border-radius: 50%;
     background-color: #3a3a3a;
+}
+
+.top-nav{
+    background-color: #21f064;
+    padding: 3px;
 }
 
 body{
