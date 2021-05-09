@@ -4,7 +4,7 @@ import sqlite3
 app = Flask(__name__)
 
 @app.route('/')
-def home():
+def leaderboard():
     return render_template("leaderboard.html", title="Leaderboard")
 
 if __name__ == "__main__":

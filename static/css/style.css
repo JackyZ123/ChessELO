@@ -1,9 +1,13 @@
-header{
-    width: 100%;
+.top-header{
+    width: 100%;;
     background-color: #1f1f20;
+    position: relative;
+    display: inline-block;
+    margin: 0;
+    color: #dddddd;
 }
 
-header h1{
+.top-header h1{
     display: inline-block;
     margin: 5px;
     color: #ffcf75;
@@ -12,18 +16,10 @@ header h1{
     font-size: 50px;
 }
 
-header{
-    position: relative;
-    display: inline-block;
-    margin: 0;
-    color: #dddddd;
-    vertical-align: middle;
-}
-
-header p{
+.top-header p{
     float: right;
     text-align: right;
-    margin: 8px;
+    margin: 25px;
 }
 
 .logo{
@@ -37,6 +33,11 @@ header p{
 .top-nav{
     background-color: #ffb01d;
     padding: 3px;
+}
+
+.top-nav a{
+    color: black;
+    text-decoration: none;
 }
 
 body{
