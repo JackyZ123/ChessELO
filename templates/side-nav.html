@@ -1,0 +1,21 @@
+<div class="side-nav">
+    <div class="side-nav-info" id="side-bar">
+        <br>
+        <h3>{{group_name}}</h3>
+        <a href="#"> - Leaderboard</a> <br>
+        <a href="#"> - Matches</a> <br>
+        <a href="#"> - Member</a> <br>
+        <a href="#"> - About</a>
+    </div>
+    <div class="side-nav-bg" id="side-bar-bg">
+        
+    </div>
+</div>
+
+<script>
+    // set width of side bar background to width of side bar
+    let bar_width = document.getElementById("side-bar").offsetWidth;
+    window.alert(bar_width.toString());
+    document.getElementById("side-bar-bg").style.width = bar_width.toString() + "px";
+    window.alert(document.getElementById("side-bar-bg").offsetWidth);
+</script>
