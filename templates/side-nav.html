@@ -1,19 +1,9 @@
-<div class="side-nav">
-    <div class="side-nav-info" id="side-bar">
-        <br>
-        <h3>{{group_name}}</h3>
-        <a href="#"> {% if page == 0 %} &nbsp;&nbsp; {% endif %} - Leaderboard</a> <br>
-        <a href="#"> {% if page == 1 %} &nbsp;&nbsp; {% endif %} - Matches</a> <br>
-        <a href="#"> {% if page == 2 %} &nbsp;&nbsp; {% endif %} - Member</a> <br>
-        <a href="#"> {% if page == 3 %} &nbsp;&nbsp; {% endif %} - About</a>
-    </div>
-    <div class="side-nav-bg" id="side-bar-bg">
-        
-    </div>
+<div class="side-nav" id="side-nav">
+    <br>
+    <h3>{{group_name}}</h3>
+    <a href="/leaderboard"> {% if page == 0 %} &nbsp;&nbsp; {% endif %} - Leaderboard</a> <br>
+    <a href="/matches"> {% if page == 1 %} &nbsp;&nbsp; {% endif %} - Matches</a> <br>
+    <a href="#"> {% if page == 2 %} &nbsp;&nbsp; {% endif %} - Member</a> <br>
+    <a href="#"> {% if page == 3 %} &nbsp;&nbsp; {% endif %} - About</a>
 </div>
 
-<script>
-    // set width of side bar background to width of side bar
-    let bar_width = document.getElementById("side-bar").offsetWidth;
-    document.getElementById("side-bar-bg").style.width = bar_width.toString() + "px";
-</script>

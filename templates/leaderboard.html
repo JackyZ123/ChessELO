@@ -3,8 +3,27 @@
 
 {% include 'side-nav.html' %}
 
-<div class="content">
-    
+<div class="content" id="content">
+    <table class="leaderboard"><tbody>
+        <tr>
+            <th>Score</th>
+            <th>Name</th>
+            {% for i in range(rank[0]|length - 4) %}
+            <th>{{rank[0][i+4][0].title()}}</th>
+            {% endfor %}
+            <th>Overall Winrate</th>
+        </tr>
+        {% for i in rank %}
+            <tr>
+                <td>{{i[2]}}</td>
+                <td>{{i[1]}}</td>
+                {% for j in range(rank[0]|length - 4) %}
+                <td style="text-align: right;">{{i[j + 4][1]}}%</td>
+                {% endfor %}
+                <td style="text-align: right;">{{i[3]}}%</td>
+            </tr>
+        {% endfor %}
+    </tbody></table>
 </div>
 
 {% endblock %}
