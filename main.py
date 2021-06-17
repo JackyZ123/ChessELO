@@ -1,5 +1,6 @@
 from flask import Flask, redirect, render_template, g, Response, abort, request
 import sqlite3
+from random import shuffle
 
 app = Flask(__name__)
 
@@ -73,6 +74,37 @@ def leaderboard():
 
     return render_template("leaderboard.html", title="Leaderboard",
                             group_name="my group", page=0, rank=board)
+
+
+@app.route("/matches")
+def matches():
+    info = select("""SELECT Event.id, Event.date, Event.result, 
+                    User.id, User.name FROM Club 
+                    JOIN Event ON Club.id = Event.club 
+                    JOIN Player ON Event.id = Player.eid 
+                    JOIN Member ON Player.mid = Member.id 
+                    JOIN User ON Member.uid = User.id 
+                    WHERE Club.id = ?
+                    ORDER BY Event.date DESC""", ("1",))
+    # print(info)
+
+    matches = [list(info.pop(0))]
+
+    for i in range(len(info)):
+        temp = list(info.pop(0))
+        if temp[0] == matches[-1][0]:
+            matches[-1] += temp[-2:]
+        else:
+            matches.append(temp)
+    
+    print(matches)
+
+    # for i in range(5): matches += matches
+    # shuffle(matches)
+
+    return render_template("matches.html", title="Matches",
+                            group_name="my group", page=1, matches=matches)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

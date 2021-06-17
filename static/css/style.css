@@ -79,7 +79,7 @@
     z-index: 0;
 }
 
-.leaderboard{
+.leaderboard, .matches{
     width:50%;
     margin-left: auto;
     margin-right: auto;
@@ -89,11 +89,11 @@
     margin-bottom: 10px;
 }
 
-.leaderboard tr{
+.leaderboard tr, .matches tr{
     font-size: 20px;
 }
 
-.leaderboard th{
+.leaderboard th, .matches th{
     background: #ffb01d;
     position: sticky;
     top: -10px;
@@ -102,12 +102,12 @@
     padding: 5px;
 }
 
-.leaderboard td{
+.leaderboard td, .matches td{
     padding-left: 10px;
     padding-right: 10px;
 }
 
-.leaderboard tr:nth-child(even){
+.leaderboard tr:nth-child(even), .matches tr:nth-child(even){
     background-color: rgb(145, 145, 145);
 }
 

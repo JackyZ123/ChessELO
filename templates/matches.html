@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+{% include 'side-nav.html' %}
+
+<div class="content" id="content">
+    <table class="matches"><tbody>
+        <tr>
+            <th style="width: 0;"></th>
+            <th>Player 1</th>
+            <th style="width: 10px;"></th>
+            <th style="width: 0;"></th>
+            <th>Player 2</th>
+            <th style="width: 105px;">Date</th>
+        </tr>
+        {% for i in matches %}
+            <tr>
+                <td>{% if i[2] == i[3] %} <img src="./static/images/crown.png" alt="👑" style="height: 20px;"> {% endif %}</td>
+                <td>{{i[4].title()}}</td>
+                <td>vs</td>
+                <td>{% if i[2] == i[5] %} <img src="./static/images/crown.png" alt="👑" style="height: 20px;"> {% endif %}</td>
+                <td>{{i[6].title()}}</td>
+                <td>{{i[1]}}</td>
+            </tr>
+        {% endfor %}
+    </tbody></table>
+</div>
+
+{% endblock %}
