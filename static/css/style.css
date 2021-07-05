@@ -76,21 +76,23 @@
     display: block;
     color: rgb(211, 211, 211);
     transform: translate(0, 120px);
-    z-index: 0;
+    z-index: 10;
 }
 
 .leaderboard, .matches{
-    width:50%;
+    width: 50%;
     margin-left: auto;
     margin-right: auto;
     border-collapse: collapse;
     background-color: rgb(122, 122, 122);
     color: rgb(19, 19, 19);
     margin-bottom: 10px;
+    z-index: inherit;
 }
 
 .leaderboard tr, .matches tr{
     font-size: 20px;
+    z-index: inherit;
 }
 
 .leaderboard th, .matches th{
@@ -100,15 +102,35 @@
     box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
     color: black;
     padding: 5px;
+    z-index: inherit;
 }
 
 .leaderboard td, .matches td{
     padding-left: 10px;
     padding-right: 10px;
+    z-index: inherit;
 }
 
 .leaderboard tr:nth-child(even), .matches tr:nth-child(even){
     background-color: rgb(145, 145, 145);
+}
+
+.matches input{
+    background-color: transparent;
+    border: none;
+    font-size: 20px;
+    font-family: inherit;
+    width: 100%;
+}
+
+.matches input:hover{
+    border: solid black;
+    border-width: 1px;
+}
+
+::placeholder{
+    font-style: italic;
+    color: rgb(77, 77, 77);
 }
 
 body{

@@ -1,3 +1,4 @@
+from logging import error
 from flask import Flask, redirect, render_template, g, Response, abort, request
 import sqlite3
 from random import shuffle
@@ -66,9 +67,9 @@ def leaderboard():
                     / (board[-1][3] + board[-1][4]) * 100)
     for i in range(2): board[-1].pop(4)
 
-    print(board)
+    #print(board)
 
-    # for i in range(5): board += board
+    #for i in range(5): board += board
 
     # board = ()
 
@@ -97,7 +98,7 @@ def matches():
         else:
             matches.append(temp)
     
-    print(matches)
+    # print(matches)
 
     # for i in range(5): matches += matches
     # shuffle(matches)
@@ -105,6 +106,28 @@ def matches():
     return render_template("matches.html", title="Matches",
                             group_name="my group", page=1, matches=matches)
 
+
+@app.route("/autofill_matches/<int:caller>", methods=["POST"])
+def autofill_matches(caller):
+    # print(caller)
+    form = request.form.get("player"+str(caller+1))
+
+    info = select("""SELECT User.id, User.name FROM Club
+                    JOIN Member ON Club.id = Member.cid
+                    JOIN User ON Member.uid = User.id
+                    WHERE Club.id = ? AND User.name LIKE ?""", (1, "%"+str(form)+"%"))
+
+    ret = ""
+    for i in info:
+        for j in i:
+            ret += str(j) + "|"
+
+    return ret
+
+
+@app.route("/new_match")
+def new_match():
+    return redirect("/matches")
 
 if __name__ == "__main__":
     app.run(debug=True)
