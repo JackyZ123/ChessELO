@@ -4,115 +4,160 @@
 {% include 'side-nav.html' %}
 
 <div class="content" id="content">
-    <table class="matches"><tbody>
-        <tr>
-            <th style="width: 5%; z-index: 10;"></th>
-            <th style="width: 30%;">White</th>
-            <th style="width: 4%;"></th>
-            <th style="width: 5%;"></th>
-            <th style="width: 30%;">Black</th>
-            <th style="width: 17%;">Date (UTC)</th>
-        </tr>
-        <form action="/new_match">
+    <table class="matches">
+        <tbody>
             <tr>
-                <td style="height: 28px;"><input type="checkbox" name="" id="" style="width: 100%;"></td>
+                <th style="width: 5%; z-index: 10;"></th>
+                <th style="width: 30%;">White</th>
+                <th style="width: 4%;"></th>
+                <th style="width: 5%;"></th>
+                <th style="width: 30%;">Black</th>
+                <th style="width: 17%;">Time</th>
+            </tr>
+            <tr>
+                <td style="height: 28px;">
+                    <input type="radio" name="winner" id="winner1" value="1" style="width: 100%;"
+                        onclick="changeWinner(0)">
+                </td>
                 <td><input type="text" placeholder="Player 1" id="player1" list="p1drop" onkeyup="autofill_matches(0)">
                     <datalist id="p1drop">
                     </datalist>
                 </td>
                 <td>vs</td>
-                <td><input type="checkbox" name="" id="" style="width: 100%;"></td>
+                <td><input type="radio" name="winner" id="winner2" style="width: 100%;" value="2"
+                        onclick="changeWinner(1)"></td>
                 <td><input type="text" placeholder="Player 2" id="player2" list="p2drop" onkeyup="autofill_matches(1)">
                     <datalist id="p2drop">
                     </datalist>
                 </td>
-                <td><input type="submit" value="Submit"></td>
+                <td><input type="button" value="Submit" onclick="submit()"></td>
             </tr>
-        </form>
-        {% for i in matches %}
+            {% for i in date %}
             <tr>
-                <td>{% if i[2] == i[3] %} <img src="/static/images/crown.png" alt="👑" style="height: 20px; z-index: 5;"> {% endif %}</td>
-                <td>{{i[4].title()}}</td>
-                <td>vs</td>
-                <td>{% if i[2] == i[5] %} <img src="/static/images/crown.png" alt="👑" style="height: 20px;"> {% endif %}</td>
-                <td>{{i[6].title()}}</td>
-                <td style="margin-left: auto; margin-right: auto;">{{i[1]}}</td>
+                <td colspan="6" class="dateHead">
+                    {{i[0]}}
+                </td>
             </tr>
-        {% endfor %}
-    </tbody></table>
+            {% for j in range(i[1]) %}
+            {% set t = matches.pop(0) %}
+            <tr>
+                <td>{% if t[2] == t[3] %} <img src="/static/images/crown.png" alt="👑"
+                        style="height: 20px; z-index: 5;"> {% endif %}</td>
+                <td>{{t[4].title()}}</td>
+                <td>vs</td>
+                <td>{% if t[2] == t[5] %} <img src="/static/images/crown.png" alt="👑" style="height: 20px;"> {% endif
+                    %}</td>
+                <td>{{t[6].title()}}</td>
+                <td style="text-align: center;">{{t[1]}}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
 
     <script>
-        function submit(){
-            return;
+        var p1 = undefined;
+        var p2 = undefined;
+        var win = undefined;
+
+        function sleep(ms) {
+            return new Promise(
+                resolve => setTimeout(resolve, ms)
+            );
         }
 
-        function autofill_matches(caller){
+        function changeWinner(caller) {
+            win = caller;
+        }
+
+        function autofill_matches(caller) {
             var player = document.getElementById("player" + (caller + 1).toString()).value;
             var datalist = document.getElementById("p" + (caller + 1).toString() + "drop");
 
-            while (datalist.childElementCount > 0){
+            while (datalist.childElementCount > 0) {
                 datalist.removeChild(datalist.firstChild);
             }
 
-            if (window.XMLHttpRequest){
+            if (window.XMLHttpRequest) {
                 var req = new XMLHttpRequest();
             }
-            else{
+            else {
                 var req = new ActiveXObject("Microsoft.XMLHTTP");
             }
 
-            req.open("POST", "/autofill_matches/"+caller.toString(), true);
+            req.open("POST", "/autofill_matches/" + caller.toString(), true);
             req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            req.onreadystatechange = function(){
-                if (this.readyState == 4 && this.status == 200){
+            req.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
                     var response = this.responseText;
                     response = response.split("|");
-                    for (var i = 0; i < (response.length)/2 - 1; i++){
-                        var option = new Option("", response[2*i + 1]);
-                        option.id = response[2*i];
+                    for (var i = 0; i < (response.length) / 2 - 1; i++) {
+                        var option = new Option("", response[2 * i + 1]);
+                        option.id = response[2 * i];
                         datalist.appendChild(option);
                     }
                 }
             };
-            req.send("player" + (caller+1).toString() + "="+player);
+            req.send("player" + (caller + 1).toString() + "=" + player);
         }
 
-        function pickFirst(caller){
-            var input = document.getElementById("player"+(caller).toString());
-            var datalist = document.getElementById("p"+(caller).toString()+"drop");
+        function pickFirst(caller) {
+            var input = document.getElementById("player" + (caller).toString());
+            var datalist = document.getElementById("p" + (caller).toString() + "drop");
 
             if (input.value == "")
                 return;
 
-            if (datalist.childElementCount > 0){
+            if (datalist.childElementCount > 0) {
                 input.value = datalist.firstChild.value;
             }
+            if (caller == 1)
+                p1 = datalist.firstChild.id;
+            else
+                p2 = datalist.firstChild.id;
         }
 
-        for (var i = 0; i < 2; i++){
+        for (var i = 0; i < 2; i++) {
             autofill_matches(i);
         }
 
         var select = "no id";
 
-        document.onselectionchange = function(){
-            try{
-                if (select.substr(0,6) == "player" && document.getSelection().focusNode.firstChild.id != select){
-                    pickFirst(select.substr(6,select.length));
+        document.onselectionchange = function () {
+            try {
+                if (select.substr(0, 6) == "player" && document.getSelection().focusNode.firstChild.id != select) {
+                    pickFirst(select.substr(6, select.length));
                 }
 
-                if (document.getSelection().focusNode.firstChild.id.substr(0,6) == "player")
+                if (document.getSelection().focusNode.firstChild.id.substr(0, 6) == "player")
                     select = document.getSelection().focusNode.firstChild.id;
                 else
                     select = "no id";
             }
-            catch{
+            catch {
                 select = "no id";
             }
         };
 
-        function clickOne(caller){
+        function submit() {
+            if (window.XMLHttpRequest) {
+                var req = new XMLHttpRequest();
+            }
+            else {
+                var req = new ActiveXObject("Microsoft.XMLHTTP");
+            }
 
+            pickFirst(1);
+            pickFirst(2);
+
+            req.open("POST", "/new_match", true);
+            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            req.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    location.reload();
+                }
+            };
+            req.send("p1=" + p1 + "&p2=" + p2 + "&winner=" + win);
         }
     </script>
 </div>

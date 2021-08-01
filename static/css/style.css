@@ -95,7 +95,7 @@
     z-index: inherit;
 }
 
-.leaderboard th, .matches th{
+.leaderboard th, .matches th, .dateHead{
     background: #ffb01d;
     position: sticky;
     top: -10px;
@@ -103,6 +103,14 @@
     color: black;
     padding: 5px;
     z-index: inherit;
+}
+
+.leaderboard th, .matches th{
+    top: -10px;
+}
+
+.dateHead{
+    top: 20px;
 }
 
 .leaderboard td, .matches td{
