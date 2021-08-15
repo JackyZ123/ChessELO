@@ -34,21 +34,24 @@ def start():
 @app.route('/leaderboard')
 def leaderboard():
     # get all info of each member in the club
-    info = select("""SELECT User.id, User.name, Member.score, 
-                    Attribute.name AS attribute, Statistics.win, 
-                    Statistics.loss, Statistics.draw 
-                    FROM User JOIN Member ON User.id = Member.uid 
-                    JOIN Statistics ON Member.id = Statistics.mid 
-                    JOIN Attribute ON Statistics.aid = Attribute.id
+    info = select("""SELECT User.id, User.name, Member.score,
+                    Attribute.name AS attribute, Statistic.win,
+                    Statistic.loss, Statistic.draw
+                    FROM User JOIN Member ON User.id = Member.uid
+                    JOIN Statistic ON Member.id = Statistic.mid
+                    JOIN Attribute ON Statistic.aid = Attribute.id
                     WHERE Member.cid = ?;""", ("1",))
-    # print(board)
+    # print(info)
 
     # sort list for management
     info = sorted(info, key=lambda x: (-x[2], x[0], x[3]))
 
     # first iteration of the management - merge lists together
     temp = list(info.pop(0))
-    board = [temp + [[temp[3], int(temp[4] / (temp[4] + temp[5]) * 100)]]]
+    try:
+        board = [temp + [[temp[3], int(temp[4] / (temp[4] + temp[5]) * 100)]]]
+    except:
+        board = [temp + [[temp[3], 0]]]
     board[0].pop(3)
 
     # print(board)
@@ -58,32 +61,46 @@ def leaderboard():
         temp = list(info.pop(0))
         if temp[0] != board[-1][0]:
             # calc score
-            board[-1][3] = int(board[-1][3]
-                               / (board[-1][3] + board[-1][4]) * 100)
+            try:
+                board[-1][3] = int(board[-1][3]
+                                   / (board[-1][3] + board[-1][4]) * 100)
+            except:
+                board[-1][3] = 0
             for i in range(2):
                 board[-1].pop(4)
             board.append(temp)
             # remove the header for this since it
             # will be used as the overall score/winrate
             # and add the scores again
-            board[-1] += [[temp[3], int(temp[4] / (temp[4] + temp[5]) * 100)]]
+            try:
+                board[-1] += [[temp[3],
+                               int(temp[4] / (temp[4] + temp[5]) * 100)]]
+            except:
+                board[-1] += [[temp[3], 0]]
             board[-1].pop(3)
             # board[-1].append(int(board[i][3] / sum(board[i][x]
             #                 for x in [3,4,5]) * 100))
         else:
-            board[-1] += [[temp[3], int(temp[4] / (temp[4] + temp[5]) * 100)]]
+            try:
+                board[-1] += [[temp[3],
+                               int(temp[4] / (temp[4] + temp[5]) * 100)]]
+            except:
+                board[-1] += [[temp[3], 0]]
             # add to overall score calcs
             for i in range(3, 6):
                 board[-1][i] += temp[i+1]
 
-    board[-1][3] = int(board[-1][3]
-                       / (board[-1][3] + board[-1][4]) * 100)
+    try:
+        board[-1][3] = int(board[-1][3]
+                           / (board[-1][3] + board[-1][4]) * 100)
+    except:
+        board[-1][3] = 0
     for i in range(2):
         board[-1].pop(4)
 
     # print(board)
 
-    #for i in range(5): board += board
+    # for i in range(5): board += board
 
     # board = ()
 
@@ -93,12 +110,12 @@ def leaderboard():
 
 @app.route("/matches")
 def matches():
-    info = select("""SELECT Event.id, Event.date, Event.result, 
-                    Member.id, User.name FROM Club 
-                    JOIN Event ON Club.id = Event.club 
-                    JOIN Player ON Event.id = Player.eid 
-                    JOIN Member ON Player.mid = Member.id 
-                    JOIN User ON Member.uid = User.id 
+    info = select("""SELECT Event.id, Event.date, Event.result,
+                    Member.id, User.name FROM Club
+                    JOIN Event ON Club.id = Event.club
+                    JOIN Player ON Event.id = Player.eid
+                    JOIN Member ON Player.mid = Member.id
+                    JOIN User ON Member.uid = User.id
                     WHERE Club.id = ?
                     ORDER BY Event.date DESC""", ("1",))
 
@@ -163,6 +180,8 @@ def new_match():
     try:
         players = list(
             map(int, [request.form.get("p1"), request.form.get("p2")]))
+        if players[0] == players[1]:
+            raise Exception
     except:
         print("unidentified input")
         return "false"
@@ -180,13 +199,44 @@ def new_match():
         id = 0
 
     # insert event
-    change("""INSERT INTO Event (id, club, result, date) 
+    change("""INSERT INTO Event (id, club, result, date)
             VALUES (?, ?, ?, ?)""", (id, 1, int(winner), date))
     for i in range(len(players)):
-        change("""INSERT INTO Player (eid, mid, aid) 
+        change("""INSERT INTO Player (eid, mid, aid)
                 VALUES (?, ?, ?)""", (id, int(players[i]), 1 if i == 0 else 2))
 
+    scores = []
+
     # change player values
+    for i in range(len(players)):
+        p, = select("""SELECT * FROM Statistic
+                        WHERE mid = ? AND aid = ?""", (players[i], i+1))
+        a, = list(select(
+            """SELECT score, development FROM Member WHERE id = ?""", (players[i],)))
+
+        scores.append(list(map(int, a)))
+
+        change("""UPDATE Statistic
+                    SET win = ?, loss = ?, draw = ?
+                    WHERE mid = ? AND aid = ?""",
+               (p[2]+int(winner == players[i]), p[3]+int(winner != (players[i] or -1)),
+                p[4]+int(winner == -1), players[i], i+1))
+
+    for i in range(2):
+        difference = scores[1][0] - scores[0][0]
+        k = max(10, min(400, int(400/(scores[i][1] + 1))))
+        if i == 1:
+            difference = -difference
+        ratio = difference / 400
+        val = 10**ratio + 1
+        expectedScore = 1/val
+        # print(expectedScore, (1 if winner == players[i] else (
+        #     0.5 if winner == -1 else 0)))
+        change("""UPDATE Member
+                    SET score = ?, development = ?
+                    WHERE id = ?""",
+               (round(scores[i][0] + k * ((1 if winner == players[i] else (
+                   0.5 if winner == -1 else 0)) - expectedScore)), scores[i][1] + 1, players[i]))
 
     return "true"
 

@@ -70,13 +70,41 @@
             win = caller;
         }
 
+        document.getElementById('player1').addEventListener('keyup', function (e) {
+            if (e.which == 13) {
+                pickFirst("1");
+                select = "no id";
+                this.blur();
+            }
+        });
+
+        document.getElementById('player2').addEventListener('keyup', function (e) {
+            if (e.which == 13) {
+                pickFirst("2");
+                select = "no id";
+                this.blur();
+            }
+        });
+
+        function pickFirst(caller) {
+            var input = document.getElementById("player" + (caller).toString());
+            var datalist = document.getElementById("p" + (caller).toString() + "drop");
+
+            if (input.value == "")
+                return;
+            console.log(document.getElementById("p1drop").childElementCount);
+            if (datalist.childElementCount > 0) {
+                input.value = datalist.firstChild.value;
+                if (caller == 1)
+                    p1 = datalist.firstChild.id;
+                else
+                    p2 = datalist.firstChild.id;
+            }
+        }
+
         function autofill_matches(caller) {
             var player = document.getElementById("player" + (caller + 1).toString()).value;
             var datalist = document.getElementById("p" + (caller + 1).toString() + "drop");
-
-            while (datalist.childElementCount > 0) {
-                datalist.removeChild(datalist.firstChild);
-            }
 
             if (window.XMLHttpRequest) {
                 var req = new XMLHttpRequest();
@@ -91,6 +119,9 @@
                 if (this.readyState == 4 && this.status == 200) {
                     var response = this.responseText;
                     response = response.split("|");
+                    while (datalist.childElementCount > 0) {
+                        datalist.removeChild(datalist.firstChild);
+                    }
                     for (var i = 0; i < (response.length) / 2 - 1; i++) {
                         var option = new Option("", response[2 * i + 1]);
                         option.id = response[2 * i];
@@ -99,22 +130,6 @@
                 }
             };
             req.send("player" + (caller + 1).toString() + "=" + player);
-        }
-
-        function pickFirst(caller) {
-            var input = document.getElementById("player" + (caller).toString());
-            var datalist = document.getElementById("p" + (caller).toString() + "drop");
-
-            if (input.value == "")
-                return;
-
-            if (datalist.childElementCount > 0) {
-                input.value = datalist.firstChild.value;
-            }
-            if (caller == 1)
-                p1 = datalist.firstChild.id;
-            else
-                p2 = datalist.firstChild.id;
         }
 
         for (var i = 0; i < 2; i++) {
@@ -129,7 +144,7 @@
                     pickFirst(select.substr(6, select.length));
                 }
 
-                if (document.getSelection().focusNode.firstChild.id.substr(0, 6) == "player")
+                else if (document.getSelection().focusNode.firstChild.id.substr(0, 6) == "player")
                     select = document.getSelection().focusNode.firstChild.id;
                 else
                     select = "no id";
