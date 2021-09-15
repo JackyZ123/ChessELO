@@ -147,3 +147,25 @@ body{
     top: 0;
     z-index: 10;
 }
+
+.full_content{
+    width:100vw;
+    float: right;
+    display: block;
+    color: rgb(211, 211, 211);
+    transform: translate(0, 120px);
+    z-index: 10;
+}
+
+.signin{
+    margin: auto;
+    width: 20vw;
+    color: #ffb01d;
+}
+
+.login{
+    margin-bottom: 5px;
+    width: calc(100% - 8px);
+    font-size: large;
+    font-family: 'Times New Roman', Times, serif;
+}

@@ -1,8 +1,12 @@
 from datetime import datetime
 from flask import Flask, redirect, render_template, request
 import sqlite3
+from flask.globals import session
+
+from flask.helpers import make_response
 
 app = Flask(__name__)
+app.secret_key = "fxlO9Etflj7jCbBRhMmSXGEKbHlgq1MWCBLpBYoJLMTQeWiy72r3IgNy49FuGsLS6X7NLMd4QtzVOBFs6uQvWmgmhSd8MyFSf9rneYYf1IQka9UelsAM0xhJJEbRLpOeIr3Wp87CnfvW8Qi0bOD16sKyrqNQDY5AIp1r2dXuJIKJ1NYYUgIt6OdaKyzCEbpQvuauOGNVQL6keo2eULXCDsyOYgL14WMLbUHs52UckcLwkOJMYOAWQ1V54G"
 
 
 def get_conn():
@@ -24,6 +28,21 @@ def change(txt, dat):
     cursor.execute(txt, dat)
     con.commit()
     con.close()
+
+
+def hash(txt):
+    # print(txt)
+    out = ""
+    for i in txt:
+        out += str(ord(i))
+    try:
+        out = int(out)
+        out = out ** 57
+        out += 7235628437562983284375682437
+        out = out // 72
+        return str(out)
+    except:
+        return ""
 
 
 @app.route('/')
@@ -165,10 +184,22 @@ def autofill_matches(caller):
     info = select("""SELECT Member.id, User.name FROM Club
                     JOIN Member ON Club.id = Member.cid
                     JOIN User ON Member.uid = User.id
-                    WHERE Club.id = ? AND User.name LIKE ?""", (1, "%"+str(form)+"%"))
+                    WHERE Club.id = ? AND User.name LIKE ?
+                    ORDER BY User.name""", (1, str(form)+"%"))
+
+    info += select("""SELECT Member.id, User.name FROM Club
+                    JOIN Member ON Club.id = Member.cid
+                    JOIN User ON Member.uid = User.id
+                    WHERE Club.id = ? AND User.name LIKE ?
+                    ORDER BY User.name""", (1, "%_"+str(form)+"%"))
+
+    members = []
+    for i in info:
+        if i not in members:
+            members.append(i)
 
     ret = ""
-    for i in info:
+    for i in members:
         for j in i:
             ret += str(j) + "|"
 
@@ -239,6 +270,49 @@ def new_match():
                    0.5 if winner == -1 else 0)) - expectedScore)), scores[i][1] + 1, players[i]))
 
     return "true"
+
+
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+
+@app.route("/signin", methods=["POST"])
+def signin():
+    info = [request.form.get("username"), hash(request.form.get("password"))]
+    (password, id), = select(
+        """SELECT password, id FROM User WHERE name = ?""", (info[0],))
+    # check password
+    if password != info[1]:
+        return redirect("/login")
+    session["user"] = int(id)
+    return redirect("/leaderboard")
+
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    info = [request.form.get("username"), hash(
+        request.form.get("password")), hash(request.form.get("confirm"))]
+    # check if passwords are the same
+    if info[1] != info[2]:
+        return redirect("/login")
+        # check if name already exists
+    password = select(
+        """SELECT password FROM User WHERE name = ?""", (info[0],))
+    if len(password) != 0:
+        return redirect("/login")
+    # add user into database and into the club
+    change("""INSERT INTO User (name, password) VALUES (?,?)""",
+           (info[0], info[1]))
+    id, = select("""SELECT id FROM User WHERE name = ?""", (info[0],))[0]
+    change("""INSERT INTO Member (uid, cid, admin, score, development) VALUES (?,?,?,?,?)""",
+           (id, 1, 0, 1000, 0))
+    # add stats
+    id, = select(
+        """SELECT id FROM Member WHERE uid = ? and cid = 1""", (id,))[0]
+    change("""INSERT INTO Statistic VALUES (?,?,?,?,?)""", (id, 1, 0, 0, 0))
+    change("""INSERT INTO Statistic VALUES (?,?,?,?,?)""", (id, 2, 0, 0, 0))
+    return redirect("/leaderboard")
 
 
 if __name__ == "__main__":

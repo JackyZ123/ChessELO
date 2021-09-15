@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="full_content" id="content">
+    <br><br>
+    <form action="/signin" method="POST">
+        <div class="signin">
+            <h3>Login</h3>
+            <input name="username" type="text" class="login" placeholder="Username">
+            <input name="password" type="password" class="login" placeholder="Password">
+            <input type="submit" value="Login" style="float: right;">
+        </div>
+    </form>
+    <br><br>
+    <form action="/signup" method="POST">
+        <div class="signin">
+            <h3>Sign Up</h3>
+            <input name="username" type="text" class="login" placeholder="Username">
+            <input name="password" type="password" class="login" placeholder="Password">
+            <input name="confirm" type="password" class="login" placeholder="Password">
+            <input type="submit" value="Sign Up" style="float: right;">
+        </div>
+    </form>
+</div>
+
+{% endblock %}

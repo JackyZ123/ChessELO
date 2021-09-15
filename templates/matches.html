@@ -43,11 +43,11 @@
             <tr>
                 <td>{% if t[2] == t[3] %} <img src="/static/images/crown.png" alt="👑"
                         style="height: 20px; z-index: 5;"> {% endif %}</td>
-                <td>{{t[4].title()}}</td>
+                <td>{{t[4]}}</td>
                 <td>vs</td>
                 <td>{% if t[2] == t[5] %} <img src="/static/images/crown.png" alt="👑" style="height: 20px;"> {% endif
                     %}</td>
-                <td>{{t[6].title()}}</td>
+                <td>{{t[6]}}</td>
                 <td style="text-align: center;">{{t[1]}}</td>
             </tr>
             {% endfor %}
@@ -67,6 +67,8 @@
         }
 
         function changeWinner(caller) {
+            pickFirst(1);
+            pickFirst(2);
             win = caller;
         }
 
@@ -161,9 +163,6 @@
             else {
                 var req = new ActiveXObject("Microsoft.XMLHTTP");
             }
-
-            pickFirst(1);
-            pickFirst(2);
 
             req.open("POST", "/new_match", true);
             req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
