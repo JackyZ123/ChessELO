@@ -164,6 +164,22 @@
                 var req = new ActiveXObject("Microsoft.XMLHTTP");
             }
 
+            for (let index = 1; index < 3; index++) {
+                var input = document.getElementById("player" + (index).toString());
+                var datalist = document.getElementById("p" + (index).toString() + "drop");
+
+                if (input.value == "")
+                    return;
+                console.log(document.getElementById("p1drop").childElementCount);
+                if (datalist.childElementCount > 0) {
+                    input.value = datalist.firstChild.value;
+                    if (index == 1)
+                        p1 = datalist.firstChild.id;
+                    else
+                        p2 = datalist.firstChild.id;
+                }
+            }
+
             req.open("POST", "/new_match", true);
             req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             req.onreadystatechange = function () {

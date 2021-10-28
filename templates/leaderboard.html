@@ -4,16 +4,30 @@
 {% include 'side-nav.html' %}
 
 <div class="content" id="content">
-    <table class="leaderboard"><tbody>
-        <tr>
-            <th>Score</th>
-            <th>Name</th>
-            {% for i in range(rank[0]|length - 4) %}
-            <th>{{rank[0][i+4][0].title()}}</th>
-            {% endfor %}
-            <th>Overall Winrate</th>
-        </tr>
-        {% for i in rank %}
+    <table class="leaderboard">
+        <tbody>
+            <!-- header -->
+            <tr>
+                <th>Score</th>
+                <th>Name</th>
+                {% for i in range(rank[0]|length - 4) %}
+                <th>{{rank[0][i+4][0].title()}}</th>
+                {% endfor %}
+                <th>Overall Winrate</th>
+            </tr>
+            <!-- Add new member -->
+            <form action="/newMember" method="post">
+                <tr>
+                    <td><input type="number" name="score" id="score" value="1000" step="100" min="500" max="2000"></td>
+                    <td><input type="text" name="name" id="name" placeholder="Name" maxlength="15"></td>
+                    {% for i in range(rank[0]|length - 4) %}
+                    <td style="text-align: right;">0%</td>
+                    {% endfor %}
+                    <td><input type="submit" value="Add Member"></td>
+                </tr>
+            </form>
+            <!-- rows of player information -->
+            {% for i in rank %}
             <tr>
                 <td>{{i[2]}}</td>
                 <td>{{i[1]}}</td>
@@ -22,8 +36,9 @@
                 {% endfor %}
                 <td style="text-align: right;">{{i[3]}}%</td>
             </tr>
-        {% endfor %}
-    </tbody></table>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

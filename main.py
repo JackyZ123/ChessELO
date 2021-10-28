@@ -2,8 +2,7 @@ from datetime import datetime
 from flask import Flask, redirect, render_template, request
 import sqlite3
 from flask.globals import session
-
-from flask.helpers import make_response
+from dateutil import tz
 
 app = Flask(__name__)
 app.secret_key = "fxlO9Etflj7jCbBRhMmSXGEKbHlgq1MWCBLpBYoJLMTQeWiy72r3IgNy49FuGsLS6X7NLMd4QtzVOBFs6uQvWmgmhSd8MyFSf9rneYYf1IQka9UelsAM0xhJJEbRLpOeIr3Wp87CnfvW8Qi0bOD16sKyrqNQDY5AIp1r2dXuJIKJ1NYYUgIt6OdaKyzCEbpQvuauOGNVQL6keo2eULXCDsyOYgL14WMLbUHs52UckcLwkOJMYOAWQ1V54G"
@@ -15,9 +14,12 @@ def get_conn():
     return con, cur
 
 
-def select(txt, dat):
+def select(txt, dat=""):
     con, cursor = get_conn()
-    cursor.execute(txt, dat)
+    if dat == "":
+        cursor.execute(txt)
+    else:
+        cursor.execute(txt, dat)
     ret = cursor.fetchall()
     con.close()
     return ret
@@ -28,6 +30,11 @@ def change(txt, dat):
     cursor.execute(txt, dat)
     con.commit()
     con.close()
+
+
+def removeTuple(dat):
+    x, = dat
+    return x
 
 
 def hash(txt):
@@ -60,7 +67,6 @@ def leaderboard():
                     JOIN Statistic ON Member.id = Statistic.mid
                     JOIN Attribute ON Statistic.aid = Attribute.id
                     WHERE Member.cid = ?;""", ("1",))
-    # print(info)
 
     # sort list for management
     info = sorted(info, key=lambda x: (-x[2], x[0], x[3]))
@@ -72,8 +78,6 @@ def leaderboard():
     except:
         board = [temp + [[temp[3], 0]]]
     board[0].pop(3)
-
-    # print(board)
 
     # rest of the iterations
     for i in range(len(info)):
@@ -97,8 +101,6 @@ def leaderboard():
             except:
                 board[-1] += [[temp[3], 0]]
             board[-1].pop(3)
-            # board[-1].append(int(board[i][3] / sum(board[i][x]
-            #                 for x in [3,4,5]) * 100))
         else:
             try:
                 board[-1] += [[temp[3],
@@ -109,6 +111,7 @@ def leaderboard():
             for i in range(3, 6):
                 board[-1][i] += temp[i+1]
 
+    # final iteration
     try:
         board[-1][3] = int(board[-1][3]
                            / (board[-1][3] + board[-1][4]) * 100)
@@ -117,18 +120,13 @@ def leaderboard():
     for i in range(2):
         board[-1].pop(4)
 
-    # print(board)
-
-    # for i in range(5): board += board
-
-    # board = ()
-
     return render_template("leaderboard.html", title="Leaderboard",
                            group_name="my group", page=0, rank=board)
 
 
 @app.route("/matches")
 def matches():
+    # get all matches
     info = select("""SELECT Event.id, Event.date, Event.result,
                     Member.id, User.name FROM Club
                     JOIN Event ON Club.id = Event.club
@@ -146,25 +144,29 @@ def matches():
               '09': "September", '10': "October", '11': "November",
               '12': "December"}
 
+    from_zone = tz.tzutc()
+    to_zone = tz.tzlocal()
+
+    # present time better
     if info != []:
         matches = [list(info.pop(0))]
-        d = datetime.utcfromtimestamp(matches[0][1]).strftime("%d %m %Y")
-        date.append([d, 1])
-        matches[0][1] = datetime.utcfromtimestamp(
-            matches[0][1]).time().strftime("%H:%M")
+        d = datetime.strptime(datetime.fromtimestamp(matches[0][1]).strftime("%d %m %Y %H:%M"),
+                              '%d %m %Y %H:%M').replace(tzinfo=from_zone).astimezone(to_zone)
+        date.append([d.strftime("%d %m %Y"), 1])
+        matches[0][1] = d.strftime("%H:%M")
 
     for i in range(len(info)):
         temp = list(info.pop(0))
         if temp[0] == matches[-1][0]:
             matches[-1] += temp[-2:]
         else:
-            d = datetime.utcfromtimestamp(temp[1]).strftime("%d %m %Y")
-            if d == date[-1][0]:
+            d = datetime.strptime(datetime.fromtimestamp(temp[1]).strftime("%d %m %Y %H:%M"),
+                                  '%d %m %Y %H:%M').replace(tzinfo=from_zone).astimezone(to_zone)
+            if d.strftime("%d %m %Y") == date[-1][0]:
                 date[-1][1] += 1
             else:
-                date.append([d, 1])
-            temp[1] = datetime.utcfromtimestamp(
-                temp[1]).time().strftime("%H:%M")
+                date.append([d.strftime("%d %m %Y"), 1])
+            temp[1] = d.strftime("%H:%M")
             matches.append(temp)
 
     for i in date:
@@ -179,8 +181,11 @@ def matches():
 
 @app.route("/autofill_matches/<int:caller>", methods=["POST"])
 def autofill_matches(caller):
+    # get input
     form = request.form.get("player"+str(caller+1))
 
+    # find all members with the input inside
+    # users that have names starting with it will come first
     info = select("""SELECT Member.id, User.name FROM Club
                     JOIN Member ON Club.id = Member.cid
                     JOIN User ON Member.uid = User.id
@@ -193,6 +198,7 @@ def autofill_matches(caller):
                     WHERE Club.id = ? AND User.name LIKE ?
                     ORDER BY User.name""", (1, "%_"+str(form)+"%"))
 
+    # make sure there are no repeats
     members = []
     for i in info:
         if i not in members:
@@ -208,6 +214,8 @@ def autofill_matches(caller):
 
 @app.route("/new_match", methods=["GET", "POST"])
 def new_match():
+    print(datetime.utcoffset)
+    # check if input is valid
     try:
         players = list(
             map(int, [request.form.get("p1"), request.form.get("p2")]))
@@ -221,7 +229,7 @@ def new_match():
     except Exception as err:
         winner = -1
 
-    date = int(datetime.timestamp(datetime.utcnow()))
+    date = int(datetime.utcnow().timestamp())
 
     # get id
     try:
@@ -261,8 +269,6 @@ def new_match():
         ratio = difference / 400
         val = 10**ratio + 1
         expectedScore = 1/val
-        # print(expectedScore, (1 if winner == players[i] else (
-        #     0.5 if winner == -1 else 0)))
         change("""UPDATE Member
                     SET score = ?, development = ?
                     WHERE id = ?""",
@@ -270,6 +276,38 @@ def new_match():
                    0.5 if winner == -1 else 0)) - expectedScore)), scores[i][1] + 1, players[i]))
 
     return "true"
+
+
+@app.route("/newMember", methods=["POST"])
+def newMember():
+    info = [request.form.get("score"), request.form.get("name")]
+    name = info[1]
+    if name.count(" ") == len(name):
+        return redirect("/leaderboard")
+    # remove trailing whitespaces
+    while True:
+        if name[-1] != " ":
+            break
+        name = name[:-1]
+    while True:
+        if name[0] != " ":
+            break
+        name = name[0:]
+    info[1] = name.title()
+    exists = list(map(removeTuple, select("SELECT name FROM USER")))
+    if info[1] not in exists:
+        change("INSERT INTO User (name) VALUES (?)", (info[1],))
+        id, = select("SELECT id FROM User WHERE name = ?", (info[1],))
+        change(
+            "INSERT INTO Member (uid, cid, admin, score, development) VALUES (?, ?, ?, ?, ?)", (id[0], 1, 0, info[0], 0))
+        id, = select("SELECT id FROM Member WHERE uid = ?", (id[0],))
+        change("INSERT INTO Statistic (mid, aid, win, loss, draw) VALUES (?, ?, ?, ?, ?)",
+               (id[0], 1, 0, 0, 0))
+        change("INSERT INTO Statistic (mid, aid, win, loss, draw) VALUES (?, ?, ?, ?, ?)",
+               (id[0], 2, 0, 0, 0))
+        return redirect("/leaderboard")
+    else:
+        return redirect("/leaderboard")
 
 
 @app.route("/login")
