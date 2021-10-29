@@ -14,6 +14,7 @@ def get_conn():
     return con, cur
 
 
+# get information from database
 def select(txt, dat=""):
     con, cursor = get_conn()
     if dat == "":
@@ -25,6 +26,7 @@ def select(txt, dat=""):
     return ret
 
 
+# change data in database
 def change(txt, dat):
     con, cursor = get_conn()
     cursor.execute(txt, dat)
@@ -147,7 +149,7 @@ def matches():
     from_zone = tz.tzutc()
     to_zone = tz.tzlocal()
 
-    # present time better
+    # present time in local time
     if info != []:
         matches = [list(info.pop(0))]
         d = datetime.strptime(datetime.fromtimestamp(matches[0][1]).strftime("%d %m %Y %H:%M"),
@@ -169,6 +171,7 @@ def matches():
             temp[1] = d.strftime("%H:%M")
             matches.append(temp)
 
+    # split list into seperate dates
     for i in date:
         d = i[0].split()
         d[0] = str(int(d[0]))
@@ -261,6 +264,7 @@ def new_match():
                (p[2]+int(winner == players[i]), p[3]+int(winner != (players[i] or -1)),
                 p[4]+int(winner == -1), players[i], i+1))
 
+    # calculate new score
     for i in range(2):
         difference = scores[1][0] - scores[0][0]
         k = max(10, min(400, int(400/(scores[i][1] + 1))))
@@ -286,13 +290,18 @@ def newMember():
         return redirect("/leaderboard")
     # remove trailing whitespaces
     while True:
+        if len(name) == 0:
+            return redirect("/leaderboard")
         if name[-1] != " ":
             break
         name = name[:-1]
     while True:
+        if len(name) == 0:
+            return redirect("/leaderboard")
         if name[0] != " ":
             break
         name = name[0:]
+    # add info
     info[1] = name.title()
     exists = list(map(removeTuple, select("SELECT name FROM USER")))
     if info[1] not in exists:
@@ -327,6 +336,7 @@ def signin():
     return redirect("/leaderboard")
 
 
+# in development
 @app.route("/signup", methods=["POST"])
 def signup():
     info = [request.form.get("username"), hash(
